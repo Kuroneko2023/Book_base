@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Archive Store</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Prompt:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f0f10; --card-bg: #1a1a1c;
+            --text-primary: #e0e0e0; --text-secondary: #aaa;
+            --gold-accent: #d4af37;
+            --gold-gradient: linear-gradient(135deg, #d4af37 0%, #f3e5ab 50%, #c5a059 100%);
+        }
+        body { 
+            font-family: 'Prompt', sans-serif; background-color: var(--bg-color); color: var(--text-primary); 
+            margin: 0; padding: 0; 
+        }
+
+        /* Hero Banner */
+        .hero {
+            height: 350px;
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1507842217153-e52fbc57d325?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
+            background-size: cover; background-position: center;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; border-bottom: 2px solid var(--gold-accent);
+        }
+        .hero h1 {
+            font-family: 'Playfair Display', serif; font-size: 4em; margin: 0;
+            background: var(--gold-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.8);
+        }
+        .hero p { color: #fff; font-size: 1.2em; letter-spacing: 2px; text-transform: uppercase; margin-top: 10px; }
+
+        /* Navbar */
+        .navbar {
+            padding: 20px 40px; display: flex; justify-content: space-between; align-items: center;
+            background: rgba(26, 26, 28, 0.95); position: sticky; top: 0; z-index: 1000;
+            border-bottom: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .nav-logo { font-family: 'Playfair Display', serif; color: var(--gold-accent); font-size: 1.5em; text-decoration: none; font-weight: bold; }
+        
+        .search-container { display: flex; align-items: center; background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); }
+        .search-input { background: transparent; border: none; color: #fff; padding: 5px; outline: none; font-family: 'Prompt', sans-serif; min-width: 250px; }
+        .search-btn { background: none; border: none; color: var(--gold-accent); cursor: pointer; }
+
+        .admin-link { 
+            color: var(--text-secondary); text-decoration: none; font-size: 0.9em; 
+            border: 1px solid #444; padding: 5px 15px; border-radius: 20px; transition: 0.3s;
+        }
+        .admin-link:hover { border-color: var(--gold-accent); color: var(--gold-accent); }
+
+        /* Main Layout */
+        .main-layout { display: flex; max-width: 1400px; margin: 40px auto; padding: 0 20px; gap: 40px; }
+
+        /* Sidebar */
+        .sidebar { flex: 0 0 250px; }
+        .sidebar h3 { 
+            font-family: 'Playfair Display', serif; color: var(--gold-accent); margin-top: 30px; margin-bottom: 20px; 
+            font-size: 1.5em; border-bottom: 1px solid #444; padding-bottom: 10px; 
+        }
+        .sidebar h3:first-child { margin-top: 0; }
+        
+        .category-list { list-style: none; padding: 0; margin: 0; max-height: 400px; overflow-y: auto; }
+        /* สไตล์ Scrollbar ของ Sidebar */
+        .category-list::-webkit-scrollbar { width: 5px; }
+        .category-list::-webkit-scrollbar-track { background: #222; }
+        .category-list::-webkit-scrollbar-thumb { background: #555; border-radius: 5px; }
+
+        .category-item { margin-bottom: 5px; }
+        .category-link {
+            display: block; color: var(--text-secondary); text-decoration: none; padding: 8px 15px;
+            border-radius: 8px; transition: 0.3s; font-size: 0.9em;
+        }
+        .category-link:hover { background: rgba(255,255,255,0.05); color: #fff; padding-left: 20px; }
+        .category-link.active {
+            background: var(--gold-gradient); color: #000; font-weight: bold; box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3);
+        }
+
+        /* Book Grid & Cards */
+        .content-area { flex: 1; }
+        .book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 30px; }
+
+        .book-card {
+            background-color: var(--card-bg); border-radius: 10px; overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05); transition: transform 0.3s, box-shadow 0.3s;
+            position: relative; display: flex; flex-direction: column;
+        }
+        .book-card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.5); border-color: rgba(212, 175, 55, 0.4); }
+
+        .card-img-wrapper { width: 100%; height: 320px; overflow: hidden; position: relative; background: #000; }
+        .card-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; opacity: 0.9; }
+        .book-card:hover .card-img { transform: scale(1.05); opacity: 1; }
+
+        .card-info { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
+        
+        .card-cat { margin-bottom: 5px; position: relative; z-index: 10; display: flex; flex-wrap: wrap; gap: 5px; }
+        .cat-link-gold {
+            color: var(--gold-accent) !important;
+            font-size: 0.7em; text-transform: uppercase; letter-spacing: 1px; text-decoration: none; font-weight: bold;
+            display: inline-block; transition: all 0.3s ease; cursor: pointer;
+        }
+        .cat-link-gold:hover {
+            color: #fff !important; text-shadow: 0 0 8px var(--gold-accent); text-decoration: underline;
+        }
+
+        .card-title { font-family: 'Playfair Display', serif; font-size: 1.1em; color: #fff; margin: 0 0 5px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card-author { color: var(--text-secondary); font-size: 0.9em; margin-bottom: 15px; }
+        
+        .card-footer { margin-top: auto; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; }
+        .card-price { color: #fff; font-weight: bold; font-size: 1.1em; }
+        .view-btn { text-decoration: none; color: #000; background: var(--gold-accent); padding: 6px 15px; border-radius: 20px; font-size: 0.8em; font-weight: bold; transition: 0.3s; }
+        .view-btn:hover { background: #fff; }
+
+        .pagination { text-align: center; margin-top: 50px; }
+        .page-btn { color: var(--gold-accent); text-decoration: none; border: 1px solid var(--gold-accent); padding: 8px 15px; margin: 0 5px; border-radius: 5px; transition: 0.3s; }
+        .page-btn:hover { background: var(--gold-accent); color: #000; }
+        
+        .no-image { display: flex; justify-content: center; align-items: center; height: 100%; background: #222; color: #555; font-size: 0.9em; text-transform: uppercase; }
+        .flash-msg { margin: 20px auto; max-width: 600px; padding: 10px; border-radius: 5px; text-align: center; }
+        .flash-success { background: rgba(3, 218, 198, 0.2); color: #03dac6; border: 1px solid #03dac6; }
+    </style>
+</head>
+<body>
+
+    <div class="hero">
+        <h1>The Archive</h1>
+        <p>Premium Book Collection</p>
+    </div>
+
+    <div class="navbar">
+        <a href="/" class="nav-logo">THE ARCHIVE</a>
+        
+        <form action="/" method="get" class="search-container">
+            {% if current_category %} <input type="hidden" name="category" value="{{ current_category }}"> {% endif %}
+            {% if current_genre %} <input type="hidden" name="genre" value="{{ current_genre }}"> {% endif %}
+            
+            <input type="text" name="search" class="search-input" placeholder="Search title, author..." value="{{ search_query }}">
+            <button type="submit" class="search-btn">🔍</button>
+        </form>
+
+        <div style="display: flex; gap: 15px; align-items: center;">
+            {% if session.get('username') %}
+                <span style="color: #fff; font-size: 0.9em;">Hello, {{ session.username }}</span>
+                {% if session.get('is_admin') %}
+                    <a href="/admin" class="admin-link">Dashboard</a>
+                {% endif %}
+                <a href="/logout" class="admin-link" style="border-color: #cf6679; color: #cf6679;">Logout</a>
+            {% else %}
+                <a href="/login" class="admin-link">Login / Register</a>
+            {% endif %}
+        </div>
+    </div>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash-msg flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="main-layout">
+        
+        <aside class="sidebar">
+            
+            <div style="margin-bottom: 20px;">
+                <a href="/" class="category-link {% if not current_category and not current_genre %}active{% endif %}" 
+                   style="text-align: center; border: 1px solid #444;">
+                    View All Books
+                </a>
+            </div>
+
+            <h3>Categories</h3>
+            <ul class="category-list">
+                {% for cat in categories %}
+                <li class="category-item">
+                    <a href="{{ url_for('shop', category=cat, genre=current_genre, search=search_query) }}" 
+                       class="category-link {% if current_category == cat %}active{% endif %}">
+                        {{ cat }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+
+            <h3>Genres</h3>
+            <ul class="category-list">
+                {% for g in genres %}
+                <li class="category-item">
+                    <a href="{{ url_for('shop', genre=g, category=current_category, search=search_query) }}" 
+                       class="category-link {% if current_genre == g %}active{% endif %}">
+                        {{ g }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </aside>
+
+        <main class="content-area">
+            {% if books %}
+                <div class="book-grid">
+                    {% for book in books %}
+                    <div class="book-card">
+                        <div class="card-img-wrapper">
+                            {% if book.image_filename %}
+                                <img src="{{ url_for('static', filename='uploads/' + book.image_filename) }}" class="card-img" alt="{{ book.title }}">
+                            {% else %}
+                                <div class="no-image">No Cover</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="card-info">
+                            <div class="card-cat">
+                                {% if book.category %}
+                                    {% for tag in book.category | split_tags %}
+                                        <a href="{{ url_for('shop', category=tag) }}" class="cat-link-gold">{{ tag }}</a>
+                                        {% if not loop.last %}<span style="color:#666; font-size:0.7em;"> | </span>{% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    <span style="color: #666; font-size: 0.75em;">GENERAL</span>
+                                {% endif %}
+                            </div>
+
+                            <h3 class="card-title">{{ book.title }}</h3>
+                            <div class="card-author">by {{ book.author_name }}</div>
+                            
+                            <div class="card-footer">
+                                <div class="card-price">${{ book.price or '-' }}</div>
+                                <a href="{{ url_for('book_detail', id=book.id) }}" class="view-btn">View</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="pagination">
+                    {% if page > 1 %}
+                        <a href="{{ url_for('shop', page=page-1, category=current_category, genre=current_genre, search=search_query) }}" class="page-btn">Previous</a>
+                    {% endif %}
+                    
+                    <span style="color: #666; margin: 0 15px;">Page {{ page }} of {{ total_pages }}</span>
+
+                    {% if page < total_pages %}
+                        <a href="{{ url_for('shop', page=page+1, category=current_category, genre=current_genre, search=search_query) }}" class="page-btn">Next</a>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div style="text-align: center; padding: 50px; color: #666;">
+                    <h2>ไม่พบหนังสือตามเงื่อนไข</h2>
+                    <p>ลองเปลี่ยนหมวดหมู่, แนวเรื่อง หรือค้นหาคำใหม่</p>
+                    <a href="/" class="view-btn" style="display:inline-block; margin-top:20px;">Reset Filters</a>
+                </div>
+            {% endif %}
+        </main>
+    </div>
+
+</body>
+</html>
